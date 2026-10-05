@@ -1,0 +1,16 @@
+<!doctype html><html lang="ru"><meta charset="utf-8"><title>Отчёт</title><link rel="stylesheet" href="/static/style.css">
+<header><b>Отчёт о просмотре архива</b><a href="/">← Архив</a>
+<select id="k"><option value="all">Все</option><option value="person">Люди</option><option value="vehicle">Техника</option></select>
+<a id="csv" href="#">CSV</a></header><main><table><thead><tr><th>Объект</th><th>Класс</th><th>Появление</th><th>Исчезновение</th>
+<th>Уверенность</th><th>Файл</th></tr></thead><tbody id="tb"></tbody></table><video id="v" controls hidden></video></main>
+<script>
+const f=s=>new Date(s*1000).toISOString().substr(11,8);let rows=[];
+function play(id,t){v.hidden=false;v.src=`/play/${id}?t=${Math.max(0,t-2)}`;v.play();scrollTo(0,document.body.scrollHeight)}
+async function load(){rows=await (await fetch("/api/events?kind="+k.value)).json();
+ tb.innerHTML=rows.map(e=>`<tr><td>${e.kind=="person"?"Человек":"Транспорт/техника"}</td><td>${e.label}</td>
+ <td><a href="#" onclick="play(${e.file_id},${e.t_start});return false">${f(e.t_start)}</a></td><td>${f(e.t_end)}</td>
+ <td>${e.conf.toFixed(2)}</td><td><a href="/media/${e.file_id}">${e.name}</a></td></tr>`).join("")}
+k.onchange=load;load();
+csv.onclick=()=>{const t="kind;label;start;end;conf;file\n"+rows.map(e=>[e.kind,e.label,f(e.t_start),f(e.t_end),e.conf.toFixed(2),e.name].join(";")).join("\n");
+ const a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["\ufeff"+t],{type:"text/csv"}));a.download="report.csv";a.click()};
+</script></html>

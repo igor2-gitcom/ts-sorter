@@ -1,0 +1,17 @@
+<!doctype html><html lang="ru"><meta charset="utf-8"><title>Архив TS</title><link rel="stylesheet" href="/static/style.css">
+<header><b>Сортировка архива MPEG-2 TS</b><a href="/report">Отчёт просмотра →</a><span id="st"></span></header>
+<div class="tabs" id="tabs"></div><main><table><thead><tr><th>Файл</th><th>Размер, МБ</th><th>Длит., с</th><th>Категория</th>
+<th>Люди</th><th>Техника</th><th>Анализ</th><th>Ошибка</th><th></th></tr></thead><tbody id="tb"></tbody></table><video id="v" controls hidden></video></main>
+<script>
+const T=[["all","Исходный архив"],["people","1. Люди"],["vehicles","2. Автомобили и техника"],["unreadable","3. Не анализируются"],["other","4. Остальные"]];
+const N=Object.fromEntries(T);let cur="all";
+tabs.innerHTML=T.map(([k,n])=>`<button data-k="${k}">${n}</button>`).join("");
+tabs.onclick=e=>{if(e.target.dataset.k){cur=e.target.dataset.k;load()}};
+function play(id,t=0){v.hidden=false;v.src=`/play/${id}?t=${t}`;v.play()}
+async function load(){[...tabs.children].forEach(b=>b.classList.toggle("active",b.dataset.k==cur));
+ const r=await (await fetch("/api/files?category="+cur)).json();st.textContent="файлов: "+r.length;
+ tb.innerHTML=r.map(f=>`<tr><td>${f.name}</td><td>${(f.size/1048576).toFixed(1)}</td><td>${f.duration?f.duration.toFixed(0):""}</td>
+ <td><span class="b ${f.category}">${N[f.category]||"в очереди"}</span></td><td>${f.persons}</td><td>${f.vehicles}</td>
+ <td>${f.analyzed_at||""}</td><td>${f.error||""}</td><td><a href="#" onclick="play(${f.id});return false">▶</a> <a href="/media/${f.id}">⬇</a></td></tr>`).join("")}
+load();setInterval(load,10000);
+</script></html>

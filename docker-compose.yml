@@ -1,0 +1,15 @@
+services:
+  ts-sorter:
+    build: .
+    ports: ["8000:8000"]
+    volumes:
+      - ./data:/data          # data/incoming — исходный архив (*.ts)
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      SAMPLE_SEC: ${SAMPLE_SEC:-1.0}       # шаг анализа кадров, сек
+      CONF: ${CONF:-0.45}            # порог уверенности YOLO
+      SCAN_INTERVAL: ${SCAN_INTERVAL:-30}     # период опроса папки, сек
+      SORT_MODE: ${SORT_MODE:-link}       # link (hardlink/копия) | move
+    restart: unless-stopped
